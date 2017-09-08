@@ -9,31 +9,85 @@ namespace Table.Controllers
 {
     public class ValuesController : ApiController
     {
-        // GET api/values
-        public IEnumerable<string> Get()
+        /// <summary>
+		/// Get list filtered by date
+		/// </summary>
+		/// <param name="start">Start date</param>
+		/// <param name="end">End date</param>
+		/// <returns>List of TableLIne objects</returns>
+		public IEnumerable<LineDTO> Get(DateTime? start = null, DateTime? end = null)
         {
-            return new string[] { "value1", "value2" };
+            var res = DB.Execute(db =>
+            {
+                start = start?.Date;
+                end = end?.Date.AddDays(1);
+                return db.Lines
+                    .Get(line => (start == null || line.Date >= start) && (end == null || line.Date <= end))
+                    .ToList()
+                    .Select(l => l.ToDTO());
+            });
+            Console.WriteLine(res);
+            return res;
         }
 
-        // GET api/values/5
-        public string Get(int id)
+        /// <summary>
+        /// Add new object
+        /// </summary>
+        /// <returns>Created object</returns>
+        public IEnumerable<ActionResult> Post(IEnumerable<ActionDTO> actions)
         {
-            return "value";
+            return DB.Execute(db =>
+            {
+                var dict = new Dictionary<int, Line>();
+                foreach (var value in actions.GroupBy(a => a.Id).Select(SimplifyOperations))
+                {
+                    switch (value.ActionType)
+                    {
+                        case ActionType.Delete:
+                            db.Lines.Delete(value.Id);
+                            break;
+                        case ActionType.Add:
+                            {
+                                var line = db.Lines.Add();
+                                line.Text = value.Text;
+                                line.Date = value.Date;
+                                dict[value.Id] = line;
+                                break;
+                            }
+                        case ActionType.Modify:
+                            {
+                                var line = db.Lines.Get(value.Id);
+                                line.Text = value.Text;
+                                line.Date = value.Date;
+                                break;
+                            }
+                        default:
+                            throw new HttpResponseException(HttpStatusCode.BadRequest);
+                    }
+                }
+                db.SaveChanges();
+                return dict.Select(kv => new ActionResult { OldId = kv.Key, NewId = kv.Value.Id });
+            });
         }
 
-        // POST api/values
-        public void Post([FromBody]string value)
+        private ActionDTO SimplifyOperations(IGrouping<int, ActionDTO> g)
         {
-        }
-
-        // PUT api/values/5
-        public void Put(int id, [FromBody]string value)
-        {
-        }
-
-        // DELETE api/values/5
-        public void Delete(int id)
-        {
+            ActionDTO result;
+            if (g.Any(a => a.ActionType == ActionType.Delete && g.Key > 0))
+                result = new ActionDTO { Id = g.Key, ActionType = ActionType.Delete };
+            else if (g.Any(a => a.ActionType == ActionType.Add && g.Key < 0))
+            {
+                var last = g.LastOrDefault(a => a.ActionType == ActionType.Modify);
+                result = new ActionDTO { Id = g.Key, ActionType = ActionType.Add, Text = last?.Text, Date = last?.Date };
+            }
+            else if (g.Key > 0)
+            {
+                var last = g.Last(a => a.ActionType == ActionType.Modify);
+                result = new ActionDTO { Id = g.Key, ActionType = ActionType.Modify, Text = last.Text, Date = last.Date };
+            }
+            else
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+            return result;
         }
     }
 }

@@ -88,3 +88,5 @@ C:\Git\Table\Table\bin\ru\System.Web.Helpers.resources.dll
 C:\Git\Table\Table\bin\ru\System.Web.Mvc.resources.dll
 C:\Git\Table\Table\obj\Debug\Table.dll
 C:\Git\Table\Table\obj\Debug\Table.pdb
+C:\Git\TableExamples\Table\obj\Debug\Table.csprojResolveAssemblyReference.cache
+C:\Git\TableExamples\Table\obj\Debug\Table.csproj.CoreCompileInputs.cache
