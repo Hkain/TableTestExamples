@@ -1,0 +1,19 @@
+﻿
+@{
+    ViewBag.Title = "Task";
+}
+
+<h2>Task</h2>
+
+<p> You can skip everything that begins with the words "desirable" or "will be a plus."
+<p> Do what is clear to you. The goal of the task is to show the available set of knowledge. It is not necessary that the result is all the required functionality.
+ <h2> Server Side </h2>
+<p> There is an object with data on the Server Side. Data format: id, date, arbitrary character set.
+<p> The data can be hammered manually into the code of the program, but it is desirable to provide in the architecture the ability to quickly add new options for filling the data (from the file, from the database).
+<p> You need to make a Handler that will return data on the Web request.
+<p> Web request parameters: start date, end date. The answer is to return all the data for the requested time interval. The data on the client should be sent to XML or to JSON. (plus will support both formats with the ability to specify the required format in the web-request'e)
+ <h2> Client Side </h2>
+<p> ASP.Net page. There is a form on it. In the form, the user specifies: start date, end date, font and color.
+<p> Next, through the AJAX request, you need to get data from the Server Side, and display the data on the page. (the plus is the creation of a beautiful dialogue using jQuery)
+<p> It is necessary to use the font and color that was selected in the form when creating the table.
+<p> Use a cookie to save the input parameters to the form. The next time you visit the page, use the parameters from the cookie, if any. (as an option to use one of the ASP.NET mechanisms for this)
